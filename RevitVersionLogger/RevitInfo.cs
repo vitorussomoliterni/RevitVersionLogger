@@ -13,7 +13,7 @@ namespace RevitVersionLogger
 
         public RevitInfo(List<string> userFolders)
         {
-            this.UserFolders = userFolders;
+            UserFolders = userFolders;
             JournalsList = GetJournalsList();
             MostUpdateJournal = GetMostUpdateJournal(JournalsList);
         }
