@@ -29,7 +29,7 @@ namespace RevitVersionLogger
                     return null;
                 }
 
-                var version = line.Substring(9, 13);
+                var version = line.Substring(9, 13); // Gets the Revit version installed
 
                 return version;
             }
@@ -37,6 +37,10 @@ namespace RevitVersionLogger
             {
                 Console.WriteLine(ex.ToString());
                 return null;
+            }
+            finally
+            {
+                file.Close();
             }
         }
     }

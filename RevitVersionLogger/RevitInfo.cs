@@ -10,12 +10,21 @@ namespace RevitVersionLogger
         private List<string> UserFolders;
         public string MostUpdateJournal { get; set; }
         private List<string> JournalsList { get; set; }
+        public string BuildNumber { get; set; }
+        public string RevitVersion { get; set; }
 
         public RevitInfo(List<string> userFolders)
         {
             UserFolders = userFolders;
             JournalsList = GetJournalsList();
             MostUpdateJournal = GetMostUpdateJournal(JournalsList);
+            BuildNumber = FileReader.GetRevitVersion(MostUpdateJournal);
+            RevitVersion = ConvertBuildIntoRevitVersion(BuildNumber);
+        }
+
+        private string ConvertBuildIntoRevitVersion(string buildNumber)
+        {
+            throw new NotImplementedException();
         }
 
         private string GetMostUpdateJournal(List<string> journalsList)
