@@ -13,7 +13,23 @@ namespace RevitVersionLogger
         {
             var userFolders = GetAllUserFolders();
 
-            var revitInfo = new RevitInfo(userFolders);
+            try
+            {
+                var revit2016Info = new RevitInfo(userFolders, "2016");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            try
+            {
+                var revit2017Info = new RevitInfo(userFolders, "2017");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private static List<string> GetAllUserFolders()

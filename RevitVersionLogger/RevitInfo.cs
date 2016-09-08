@@ -7,14 +7,16 @@ namespace RevitVersionLogger
 {
     internal class RevitInfo
     {
+        public string Year { get; set; }
         private List<string> UserFolders;
         public string MostUpdateJournal { get; set; }
         private List<string> JournalsList { get; set; }
         public string BuildNumber { get; set; }
         public string RevitVersion { get; set; }
 
-        public RevitInfo(List<string> userFolders)
+        public RevitInfo(List<string> userFolders, string year)
         {
+            Year = year;
             UserFolders = userFolders;
             JournalsList = GetJournalsList();
             MostUpdateJournal = GetMostUpdateJournal(JournalsList);
@@ -58,6 +60,16 @@ namespace RevitVersionLogger
                 case "20160720_0715":
                     version = "Update 6 for R2,16.0.1161.0";
                     break;
+                case "20160225_1515":
+                    version = "First Customer Ship,17.0.416.0";
+                    break;
+
+                case "20160606_1515":
+                    version = "Service Pack 1,17.0.476.0";
+                    break;
+                case "20160720_1515":
+                    version = "Service Pack 2,17.0.501.0";
+                    break;
                 default:
                     version = "No version found for given build number.";
                     break;
@@ -95,12 +107,17 @@ namespace RevitVersionLogger
 
             foreach (var folder in UserFolders)
             {
-                var journalsPath = string.Format(@"{0}\AppData\Local\Autodesk\Revit\Autodesk Revit 2016\Journals", folder);
+                var journalsPath = string.Format(@"{0}\AppData\Local\Autodesk\Revit\Autodesk Revit {1}\Journals", folder, Year);
 
                 if (Directory.Exists(journalsPath))
                 {
                     journalsList = Directory.EnumerateFiles(journalsPath, "journal.*.txt").ToList();
                 }
+            }
+
+            if (journalsList.Count == 0)
+            {
+                throw new FileNotFoundException("No journal files found for Revit " + Year);
             }
 
             return journalsList;
