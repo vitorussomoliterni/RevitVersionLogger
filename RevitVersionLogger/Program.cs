@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RevitVersionLogger
 {
@@ -12,10 +10,12 @@ namespace RevitVersionLogger
         static void Main(string[] args)
         {
             var userFolders = GetAllUserFolders();
+            var infoList = new List<RevitInfo>();
 
             try
             {
                 var revit2016Info = new RevitInfo(userFolders, "2016");
+                infoList.Add(revit2016Info);
             }
             catch (Exception e)
             {
@@ -25,11 +25,15 @@ namespace RevitVersionLogger
             try
             {
                 var revit2017Info = new RevitInfo(userFolders, "2017");
+                infoList.Add(revit2017Info);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
+
+            Logger(infoList);
+            Console.ReadKey();
         }
 
         private static List<string> GetAllUserFolders()
@@ -40,6 +44,27 @@ namespace RevitVersionLogger
             folders.RemoveAll(f => usersToIgnore.Contains(f.Substring(9).Trim().ToLower())); // Removes all the users folder to ignore from the folders list
 
             return folders;
+        }
+
+        private static void Logger(List<RevitInfo> infoList)
+        {
+            try
+            {
+                var path = "log.csv";
+                foreach (var i in infoList)
+                {
+                    var line = string.Format("{0},{1},{2},Revit {3},{4}", DateTime.Now.ToShortDateString(), i.UserName, Environment.MachineName, i.Year, i.RevitVersion);
+                    using (StreamWriter w = File.AppendText(path))
+                    {
+                        w.WriteLine(line);
+                        Console.WriteLine(line);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 }

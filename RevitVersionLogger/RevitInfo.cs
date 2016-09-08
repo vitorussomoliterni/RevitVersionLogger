@@ -13,6 +13,7 @@ namespace RevitVersionLogger
         private List<string> JournalsList { get; set; }
         public string BuildNumber { get; set; }
         public string RevitVersion { get; set; }
+        public string UserName { get; set; }
 
         public RevitInfo(List<string> userFolders, string year)
         {
@@ -20,8 +21,17 @@ namespace RevitVersionLogger
             UserFolders = userFolders;
             JournalsList = GetJournalsList();
             MostUpdateJournal = GetMostUpdateJournal(JournalsList);
+            UserName = GetUserName(MostUpdateJournal);
             BuildNumber = FileReader.GetRevitVersion(MostUpdateJournal);
             RevitVersion = ConvertBuildIntoRevitVersion(BuildNumber);
+        }
+
+        private string GetUserName(string mostUpdateJournal)
+        {
+            var partialUserName = mostUpdateJournal.Substring(9);
+            var userNameLength = partialUserName.IndexOf("\\");
+            var userName = partialUserName.Substring(0, userNameLength);
+            return userName;
         }
 
         private string ConvertBuildIntoRevitVersion(string buildNumber)
@@ -63,7 +73,6 @@ namespace RevitVersionLogger
                 case "20160225_1515":
                     version = "First Customer Ship,17.0.416.0";
                     break;
-
                 case "20160606_1515":
                     version = "Service Pack 1,17.0.476.0";
                     break;
