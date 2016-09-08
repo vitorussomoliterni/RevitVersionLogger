@@ -33,7 +33,6 @@ namespace RevitVersionLogger
             }
 
             Logger(infoList);
-            Console.ReadKey();
         }
 
         private static List<string> GetAllUserFolders()
