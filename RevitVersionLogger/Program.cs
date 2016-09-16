@@ -49,7 +49,7 @@ namespace RevitVersionLogger
         {
             try
             {
-                var path = "log.csv";
+                var path = @"\\alljac-nas04\Transfer\Transfer\moliterni\logs\log.csv";
                 foreach (var i in infoList)
                 {
                     var line = string.Format("{0},{1},{2},Revit {3},{4}", DateTime.Now.ToShortDateString(), i.UserName, Environment.MachineName, i.Year, i.RevitVersion);
