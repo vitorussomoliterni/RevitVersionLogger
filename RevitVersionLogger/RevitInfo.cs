@@ -1,83 +1,115 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Management;
 
 namespace RevitVersionLogger
 {
     internal class RevitInfo
     {
         public string Year { get; set; }
-        private List<string> UserFolders;
-        public string MostUpdateJournal { get; set; }
-        private List<string> JournalsList { get; set; }
         public string BuildNumber { get; set; }
         public string RevitVersion { get; set; }
         public string UserName { get; set; }
 
-        public RevitInfo(List<string> userFolders, string year)
+        public RevitInfo(string year)
         {
             Year = year;
-            UserFolders = userFolders;
-            JournalsList = GetJournalsList();
-            MostUpdateJournal = GetMostUpdateJournal(JournalsList);
-            UserName = GetUserName(MostUpdateJournal);
-            BuildNumber = FileReader.GetRevitVersion(MostUpdateJournal);
-            RevitVersion = ConvertBuildIntoRevitVersion(BuildNumber);
+            UserName = GetUserName();
+            BuildNumber = GetBuildNumber(Year);
+            RevitVersion = GetRevitVersion(BuildNumber);
         }
 
-        private string GetUserName(string mostUpdateJournal)
+        private string GetBuildNumber(string year)
         {
-            var partialUserName = mostUpdateJournal.Substring(9);
-            var userNameLength = partialUserName.IndexOf("\\");
-            var userName = partialUserName.Substring(0, userNameLength);
-            return userName;
+            var path = string.Format(@"SOFTWARE\Autodesk\Revit\{0}\REVIT-05:0409", year);
+            string buildNumber = null;
+
+            using (var key = Registry.LocalMachine.OpenSubKey(path))
+            {
+                if (key != null)
+                {
+                    var value = key.GetValue("Version");
+                    if (value != null)
+                    {
+                        var s = value.ToString();
+                        var startIndex = s.IndexOf("(") + 1;
+                        var length = s.LastIndexOf(")") - startIndex;
+                        buildNumber = s.Substring(startIndex, length);
+                    }
+                }
+            }
+
+            return buildNumber;
         }
 
-        private string ConvertBuildIntoRevitVersion(string buildNumber)
+        private string GetUserName()
+        {
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT UserName FROM Win32_ComputerSystem");
+            ManagementObjectCollection collection = searcher.Get();
+
+            if (collection.Count == 0)
+            {
+                return "No user found";
+            }
+
+            var networkUsername = (string)collection.Cast<ManagementBaseObject>().First()["UserName"];
+
+            var startIndex = networkUsername.IndexOf("\\") + 1;
+            var username = networkUsername.Substring(startIndex);
+
+            return username;
+        }
+
+        private string GetRevitVersion(string buildNumber)
         {
             string version;
 
             switch (buildNumber)
             {
-                case "20150220_1215":
-                    version = "First Customer Ship,16.0.428.0";
+                case "16.0.428.0":
+                    version = "First Customer Ship";
                     break;
-                case "20150506_1715":
-                    version = "Service Pack 1,16.0.462.0";
+                case "16.0.462.0":
+                    version = "Service Pack 1";
                     break;
-                case "20150714_1515":
-                    version = "Service Pack 2,16.0.490.0";
+                case "16.0.490.0":
+                    version = "Service Pack 2";
                     break;
-                case "20151007_0715":
-                    version = "Release 2 (R2),16.0.1063";
+                case "16.0.1063":
+                    version = "Release 2 (R2)";
                     break;
-                case "20151209_0715":
-                    version = "Update 1 for R2,16.0.1092.0";
+                case "16.0.1092.0":
+                    version = "Update 1 for R2";
                     break;
-                case "20160126_1600":
-                    version = "Update 2 for R2,16.0.1108.0";
+                case "16.0.1108.0":
+                    version = "Update 2 for R2";
                     break;
-                case "20160217_1800":
-                    version = "Update 3 for R2,16.0.1118.0";
+                case "16.0.1118.0":
+                    version = "Update 3 for R2";
                     break;
-                case "20160314_0715":
-                    version = "Update 4 for R2,16.0.1124.0";
+                case "16.0.1124.0":
+                    version = "Update 4 for R2";
                     break;
-                case "20160525_1230":
-                    version = "Update 5 for R2,16.0.1144.0";
+                case "16.0.1144.0":
+                    version = "Update 5 for R2";
                     break;
-                case "20160720_0715":
-                    version = "Update 6 for R2,16.0.1161.0";
+                case "16.0.1161.0":
+                    version = "Update 6 for R2";
                     break;
-                case "20160225_1515":
-                    version = "First Customer Ship,17.0.416.0";
+                case "17.0.416.0":
+                    version = "First Customer Ship";
                     break;
-                case "20160606_1515":
-                    version = "Service Pack 1,17.0.476.0";
+                case "17.0.476.0":
+                    version = "Service Pack 1";
                     break;
-                case "20160720_1515":
-                    version = "Service Pack 2,17.0.501.0";
+                case "17.0.501.0":
+                    version = "Service Pack 2";
+                    break;
+                case null:
+                    version = "Revit " + Year + " installation not found";
                     break;
                 default:
                     version = "No version found for given build number.";
@@ -85,51 +117,6 @@ namespace RevitVersionLogger
             }
 
             return version;
-        }
-
-        private string GetMostUpdateJournal(List<string> journalsList)
-        {
-            var mostUpdateJournal = journalsList.FirstOrDefault();
-
-            if (journalsList.Count == 1)
-            {
-                return mostUpdateJournal;
-            }
-
-            foreach (var f in journalsList)
-            {
-                var currentFileDate = File.GetLastWriteTime(f);
-                var newestFileDate = File.GetLastWriteTime(mostUpdateJournal);
-
-                if (currentFileDate > newestFileDate)
-                {
-                    mostUpdateJournal = f;
-                }
-            }
-
-            return mostUpdateJournal;
-        }
-
-        private List<string> GetJournalsList()
-        {
-            var journalsList = new List<string>();
-
-            foreach (var folder in UserFolders)
-            {
-                var journalsPath = string.Format(@"{0}\AppData\Local\Autodesk\Revit\Autodesk Revit {1}\Journals", folder, Year);
-
-                if (Directory.Exists(journalsPath))
-                {
-                    journalsList = Directory.EnumerateFiles(journalsPath, "journal.*.txt").ToList();
-                }
-            }
-
-            if (journalsList.Count == 0)
-            {
-                throw new FileNotFoundException("No journal files found for Revit " + Year);
-            }
-
-            return journalsList;
         }
     }
 }
