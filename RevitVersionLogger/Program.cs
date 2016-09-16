@@ -38,15 +38,15 @@ namespace RevitVersionLogger
         {
             try
             {
-                var path = @"\\alljac-nas04\Transfer\Transfer\moliterni\logs\log.csv";
+                var path = string.Format(@"\\alljac-nas04\Transfer\Transfer\moliterni\logs\revit_version_logs\log_{0}.csv", DateTime.Now.Day + "-" + DateTime.Now.Month + "-" + DateTime.Now.Year);
                 foreach (var i in infoList)
                 {
                     var line = string.Format("{0},{1},{2},Revit {3},{4},{5}", DateTime.Now.ToShortDateString(), i.UserName, Environment.MachineName, i.Year, i.RevitVersion, i.BuildNumber);
-                    //using (StreamWriter w = File.AppendText(path))
-                    //{
-                    //    w.WriteLine(line);
-                    //    Console.WriteLine(line);
-                    //}
+                    using (StreamWriter w = File.AppendText(path))
+                    {
+                        w.WriteLine(line);
+                        Console.WriteLine(line);
+                    }
                 }
             }
             catch (Exception e)
